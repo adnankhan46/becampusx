@@ -13,6 +13,7 @@ import Notification from "./pages/Notification";
 import ErrorPage from "./pages/ErrorPage";
 import Explore from "./pages/Explore";
 import UserPage from "./pages/UserPage";
+import ApplyForOpportunity from "./pages/ApplyOppPage";
 // import Comment from "./components/Comment";
 
 
@@ -41,7 +42,7 @@ function App() {
    <Route path='/explore' element={<Explore/>}/>
    
    <Route path='/report' element={<ReportPage/>}/>
-
+     <Route path="/apply/:id" element={<ApplyForOpportunity />} />
    <Route path='*' element={<ErrorPage/>}/>
    </Routes>
    </BrowserRouter>
