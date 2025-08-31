@@ -12,7 +12,7 @@ import { getMyapplicants } from "../controller/Company/company.controller.js";
 
 const router = express.Router();
 
-router.use(verifyAdmin);
+// router.use(verifyAdmin);
 
 
 /**
