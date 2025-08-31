@@ -50,7 +50,7 @@ app.use(morgan((tokens, req, res) => {
   return null;
 }));
 
-const TURSTED_ORIGIN = ['http://localhost:5173', process.env.FRONTEND_ORIGIN]
+const TURSTED_ORIGIN = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', process.env.FRONTEND_ORIGIN]
 
 // Middleware
 app.use(cors({

@@ -13,6 +13,7 @@ import User from "./pages/Client/User";
 import Applicant from "./pages/Provider/Applicant";
 import Opportunity from "./pages/Provider/Opportunity";
 import Payment from "./pages/Provider/Payment";
+import { Button } from "./components/ui/button";
 const router = createBrowserRouter( [
     {
       path: "/",
@@ -21,6 +22,10 @@ const router = createBrowserRouter( [
     {
       path: "/login",
       element: <Login/>,
+    },
+    {
+      path: "*",
+      element: <div>This route does not exist for now <Button onClick={()=>{router.navigate('/')}}>Go to Home</Button></div>,
     },
     {
       path: "/Client/Dashboard", // base
@@ -70,10 +75,7 @@ const router = createBrowserRouter( [
         {
            path: "e",
            element: <Provider />,  // element 1
-        }
-        
-        
-        
+        },        
       ]
     },
     

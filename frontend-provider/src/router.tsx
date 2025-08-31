@@ -10,6 +10,7 @@ import AllOpportunity from "./pages/AllOpportunity";
 import AllApplications from "./pages/AllApplications";
 import Payments from "./pages/Payments";
 import Dashboard from "./pages/Dashboard";
+import { Button } from "./components/ui/button";
 
 const router = createBrowserRouter([
   {
@@ -58,6 +59,10 @@ const router = createBrowserRouter([
     {
       path: "/profile",
       element: <Profile/>,
+    },
+    {
+      path: "*",
+      element: <div>This route does not exist for now <Button onClick={()=>{router.navigate('/')}}>Go to Home</Button></div>,
     },
   ]);
   
