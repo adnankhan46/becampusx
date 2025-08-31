@@ -46,7 +46,7 @@ console.log(`${Boolean(plainObject.paymentStatus.firstPayment.status) ? "TRUE": 
         product_id: config.PRODUCT_ID,
         product_name: `Cx_op`,
         quantity: 1,
-        amount: paymentAmount * 0.5 * 100, // 50% upfront
+        amount: Math.floor(paymentAmount * 0.5 * 100), // 50% upfront
       },
     ];
     console.log("opp id::: ", String(opportunity._id));

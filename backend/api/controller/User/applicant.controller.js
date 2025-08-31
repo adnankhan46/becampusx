@@ -191,11 +191,12 @@ export const getMyOpportunities = async (req, res, next) => {
 
 export const applicationId = async (req,res) => {
   try {
-    const {applicationId}= req.params;
-     const applicant = await Applicant.findById(applicationId);
+    const {applicationId} = req.params;
+    const applicant = await Applicant.findById(applicationId);
+    console.log("App id", applicant)
      if(!applicant){
       console.log("YOU DIDN'T APPLY FOR THIS OPPORTUNITY")
-       return res.status(404).json("YOU DIDN'T APPLY FOR ANY OPPORTUNITY")
+       return res.status(500).json("YOU DIDN'T APPLY FOR ANY OPPORTUNITY")
      }
      res.status(200).json(applicant)
   } catch (error) {

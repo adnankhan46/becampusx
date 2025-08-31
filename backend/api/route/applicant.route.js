@@ -5,7 +5,7 @@ import {
   getMyAppliedOpp
 } from "../controller/User/applicant.controller.js";
 import { verifyToken } from "../middlewares/auth.js";
-import { getOpportunityById } from "../controller/Company/opportunity.controller.js";
+import { getAllOpportunities, getOpportunityById } from "../controller/Company/opportunity.controller.js";
 
 const router = express.Router();
 
@@ -22,6 +22,8 @@ router.get('/verify-email', );
 */
 
 // OPPORTUNITIES
+router.get('/getAllOpp' , getAllOpportunities);
+
    //API-1 Get all Opp whose 1st payment is verified // TODO
    router.get("/:id", getOpportunityById); // when click on an Opportunity, For User/Admin/Company : [COMMON]
 

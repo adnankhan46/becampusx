@@ -189,7 +189,7 @@ export const getMyapplicants = async (req,res,next) => {
    
     try {
         const { id }= req.params;
-      const opportunity = await Opportunity.findById(id);
+      const opportunity = await Opportunity.findById(id).populate("applicants.userId", "email username");
       console.log("Opp: ", opportunity);
       if(!opportunity) {
         return res.status(404).json("NO OPPORTUNITY FOUND");
@@ -213,7 +213,7 @@ export const updateApplicantStatus = async (req, res, next) => {
     const { status } = req.body;
     
     // Validate status
-    if (!['applied', 'shortlisted', 'selected', 'rejected'].includes(status)) {
+    if (!['applied', 'selected', 'rejected'].includes(status)) {
       return next(errorHandler(400, "Invalid status"));
     }
     

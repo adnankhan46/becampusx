@@ -209,7 +209,8 @@ export const getAllOpportunities = async (req,res,next) => {
 
 export const getOpportunityByCompanyId = async (req, res, next) => {
   try {
-    const companyId = req.params.companyId;
+    const companyId = req.params.id;
+    console.log("com id", req.params)
     const { page = 1, limit = 10, sort = '-createdAt' } = req.query;
 
     // Validate ObjectId

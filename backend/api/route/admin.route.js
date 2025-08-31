@@ -9,6 +9,7 @@ import { getAllOpportunities, getOpportunityByCompanyId, getOpportunityById } fr
 import { allApplicants, allComments, allCompany, allUsers } from "../controller/Admin/admin.controller.js";
 import { allPost, allPostByUser, getSinglePost } from "../controller/post.controller.js";
 import { getMyapplicants } from "../controller/Company/company.controller.js";
+import { getShortlisted } from "../controller/Admin/applicant.admin.controller.js";
 
 const router = express.Router();
 
@@ -55,9 +56,9 @@ router.get('/getAllApplicantsByCompany/:id', getMyapplicants);
 
 
 // API 1: Get shortlisted applicants from Opp's whose 2nd payment.status == TRUE
-router.get('/getShortlisted', ); // *TODO
+router.get('/getShortlisted/:opportunityId', getShortlisted);
 
 // API 2: Pay to shortlisted applicants
-router.post('/payToApplicants', ); // *TODO: admin pays to selected applicants, if opp's second payment done
+router.post('/payToApplicants/:oppId', ); // *TODO: admin Manually pays to selected applicants, if opp's second payment done
 
 export default router;
