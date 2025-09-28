@@ -4,7 +4,8 @@ import { errorHandler } from "../../middlewares/error.js";
 import StudentProfile from "../../model/StudentProfile.model.js";
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
-
+import Supervisor from "../../model/supervisor.model.js";
+import Submission from "../../model/submission.model.js";
 export const handleCompanySignUp = async (req, res, next) => {
   const { username, name, email, password, url } = req.body;
 
@@ -330,11 +331,10 @@ export const updateApplicantStatus = async (req, res, next) => {
   }
 };
 
-// New function to mark opportunity as completed in student profile
 export const markOpportunityCompleted = async (req, res, next) => {
   try {
     const { opportunityId, userId } = req.params;
-    const { endDate, description, certificate } = req.body;
+    const { endDate, description, supervisorId } = req.body;
 
     // Update student profile
     const profile = await StudentProfile.findOneAndUpdate(
@@ -346,8 +346,7 @@ export const markOpportunityCompleted = async (req, res, next) => {
         $set: { 
           "opportunityHistory.$.status": 'completed',
           "opportunityHistory.$.endDate": endDate || new Date(),
-          "opportunityHistory.$.description": description || "Opportunity completed successfully",
-          "opportunityHistory.$.certificate": certificate || null,
+          "opportunityHistory.$.description": description || "Opportunity completed - awaiting supervisor feedback",
           updatedAt: new Date()
         }
       },
@@ -358,7 +357,7 @@ export const markOpportunityCompleted = async (req, res, next) => {
       return next(errorHandler(404, "Student profile or opportunity history not found"));
     }
 
-    // Also update applicant status
+    // Update applicant status
     await Applicant.findOneAndUpdate(
       { opportunityId, userId },
       { 
@@ -368,8 +367,41 @@ export const markOpportunityCompleted = async (req, res, next) => {
       }
     );
 
+    // If supervisor is provided, assign student to supervisor
+    if (supervisorId) {
+      const supervisor = await Supervisor.findById(supervisorId);
+      if (supervisor) {
+        // Check if already assigned
+        const existingAssignment = supervisor.assignedStudents.find(
+          assignment => assignment.studentId.toString() === userId && 
+                       assignment.opportunityId.toString() === opportunityId
+        );
+        
+        if (!existingAssignment) {
+          // Add assignment
+          supervisor.assignedStudents.push({
+            studentId: userId,
+            opportunityId,
+            status: 'assigned'
+          });
+          await supervisor.save();
+          
+          // Create initial submission record
+          const submission = new Submission({
+            studentId: userId,
+            opportunityId,
+            supervisorId,
+            status: 'pending'
+          });
+          await submission.save();
+        }
+      }
+    }
+
     res.status(200).json({ 
-      message: "Opportunity marked as completed in student profile",
+      message: supervisorId 
+        ? "Opportunity marked as completed and student assigned to supervisor"
+        : "Opportunity marked as completed in student profile",
       profile 
     });
 
