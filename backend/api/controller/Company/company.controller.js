@@ -1,6 +1,7 @@
 import Company from "../../model/company.model.js";
 import Opportunity from "../../model/opportunity.model.js";
 import { errorHandler } from "../../middlewares/error.js";
+import StudentProfile from "../../model/StudentProfile.model.js";
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -211,59 +212,167 @@ export const updateApplicantStatus = async (req, res, next) => {
   try {
     const { opportunityId, userId } = req.params;
     const { status } = req.body;
-    
+
     // Validate status
-    if (!['applied', 'selected', 'rejected'].includes(status)) {
+    const validStatuses = ['applied', 'shortlisted', 'selected', 'rejected'];
+    if (!validStatuses.includes(status)) {
       return next(errorHandler(400, "Invalid status"));
     }
-    
-    const opportunity = await Opportunity.findById(opportunityId);
-    
+
+    // Get opportunity details
+    const opportunity = await Opportunity.findById(opportunityId).populate('createdBy.id', 'name');
     if (!opportunity) {
       return next(errorHandler(404, "Opportunity not found"));
     }
-    
-     
-    if (
-      opportunity.createdBy.id.toString() !== req.user.id && 
-      !req.user.isAdmin
-    ) {
-      return next(errorHandler(403, "You are not authorized to update applicant status"));
-    }
-    
-    // Find the applicant
-    const applicantIndex = opportunity.applicants.findIndex(
-      applicant => applicant.userId.toString() === userId
+
+    // Update applicant status in Opportunity model
+    const updatedOpportunity = await Opportunity.findOneAndUpdate(
+      { _id: opportunityId, "applicants.userId": userId },
+      { 
+        $set: { 
+          "applicants.$.status": status,
+          "applicants.$.updatedAt": new Date()
+        }
+      },
+      { new: true }
     );
-    
-    if (applicantIndex === -1) {
-      return next(errorHandler(404, "Applicant not found"));
-    }
-    
- 
-    opportunity.applicants[applicantIndex].status = status;
-    
- 
-    if (status === 'selected') {
-      const alreadySelected = opportunity.selectedCandidates.find(
-        candidate => candidate.userId.toString() === userId
-      );
+
+    // Also update in Applicant model if it exists
+    await Applicant.findOneAndUpdate(
+      { opportunityId, userId },
+      { 
+        status,
+        updatedAt: new Date()
+      }
+    );
+
+    // **AUTO UPDATE STUDENT PROFILE** - Only for shortlisted, selected, or completed
+    if (['shortlisted', 'selected', 'completed'].includes(status)) {
       
-      if (!alreadySelected) {
-        opportunity.selectedCandidates.push({
-          userId,
-           
-           
-        });
+      // Get company name
+      let companyName = "Unknown Company";
+      if (opportunity.creator === 'Company' && opportunity.createdBy.id && opportunity.createdBy.id.name) {
+        companyName = opportunity.createdBy.id.name;
+      } else if (opportunity.createdBy.name) {
+        companyName = opportunity.createdBy.name;
+      }
+
+      // Check if this opportunity already exists in student's history
+      const existingProfile = await StudentProfile.findOne({
+        userId,
+        "opportunityHistory.opportunityId": opportunityId
+      });
+
+      if (existingProfile) {
+        // Update existing entry
+        await StudentProfile.findOneAndUpdate(
+          { 
+            userId,
+            "opportunityHistory.opportunityId": opportunityId
+          },
+          { 
+            $set: { 
+              "opportunityHistory.$.status": status,
+              "opportunityHistory.$.addedAt": new Date()
+            }
+          }
+        );
+      } else {
+        // Create new entry in student's opportunity history
+        const historyEntry = {
+          opportunityId: opportunity._id,
+          title: opportunity.title,
+          companyName: companyName,
+          status: status,
+          startDate: status === 'selected' ? new Date() : null,
+          endDate: null,
+          description: `${status.charAt(0).toUpperCase() + status.slice(1)} for ${opportunity.title}`,
+          certificate: null
+        };
+
+        // Add to student profile (create profile if doesn't exist)
+        await StudentProfile.findOneAndUpdate(
+          { userId },
+          { 
+            $push: { opportunityHistory: historyEntry },
+            $set: { updatedAt: new Date() }
+          },
+          { new: true, upsert: true }
+        );
       }
     }
-    
-    await opportunity.save();
-    
+
+    // If status is 'selected', add to selectedCandidates array
+    if (status === 'selected') {
+      await Opportunity.findByIdAndUpdate(
+        opportunityId,
+        { 
+          $addToSet: { selectedCandidates: { userId } }
+        }
+      );
+    } else {
+      // Remove from selectedCandidates if status changed from selected to something else
+      await Opportunity.findByIdAndUpdate(
+        opportunityId,
+        { 
+          $pull: { selectedCandidates: { userId } }
+        }
+      );
+    }
+
     res.status(200).json({ 
-      message: "Applicant status updated successfully",
-      opportunity
+      message: "Applicant status updated successfully and student profile updated",
+      opportunity: updatedOpportunity 
     });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+// New function to mark opportunity as completed in student profile
+export const markOpportunityCompleted = async (req, res, next) => {
+  try {
+    const { opportunityId, userId } = req.params;
+    const { endDate, description, certificate } = req.body;
+
+    // Update student profile
+    const profile = await StudentProfile.findOneAndUpdate(
+      { 
+        userId,
+        "opportunityHistory.opportunityId": opportunityId
+      },
+      { 
+        $set: { 
+          "opportunityHistory.$.status": 'completed',
+          "opportunityHistory.$.endDate": endDate || new Date(),
+          "opportunityHistory.$.description": description || "Opportunity completed successfully",
+          "opportunityHistory.$.certificate": certificate || null,
+          updatedAt: new Date()
+        }
+      },
+      { new: true }
+    );
+
+    if (!profile) {
+      return next(errorHandler(404, "Student profile or opportunity history not found"));
+    }
+
+    // Also update applicant status
+    await Applicant.findOneAndUpdate(
+      { opportunityId, userId },
+      { 
+        status: 'completed',
+        completionStatus: 'completed',
+        updatedAt: new Date()
+      }
+    );
+
+    res.status(200).json({ 
+      message: "Opportunity marked as completed in student profile",
+      profile 
+    });
+
   } catch (error) {
     next(error);
   }

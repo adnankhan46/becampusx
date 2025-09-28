@@ -1,78 +1,77 @@
+import Applicant from "../../model/applicant.model.js";
 import Opportunity from "../../model/opportunity.model.js";
-import Applicant from "../../model/applicant.model.js"; // Add this import
+import StudentProfile from "../../model/studentProfile.model.js";
 import { errorHandler } from "../../middlewares/error.js";
+import { autoUpdateStudentProfile } from "../../utils/studentProfileHelper.js";
 
+// Apply for opportunity - AUTO UPDATES STUDENT PROFILE
 export const applyForOpportunity = async (req, res, next) => {
   try {
-    const { id } = req.params;//asking for oppId
-    
-    if (req.user.isCompany === true) {
-      return next(errorHandler(403, "Companies cannot apply for opportunities"));
+    const { id: opportunityId } = req.params;
+    const userId = req.user.id;
+    const { coverLetter, proofOfWork } = req.body;
+
+    if (!coverLetter) {
+      return next(errorHandler(400, "Cover letter is required"));
     }
-    
-    const opportunity = await Opportunity.findById(id);
-    
+
+    // Check if opportunity exists and is open
+    const opportunity = await Opportunity.findById(opportunityId);
     if (!opportunity) {
       return next(errorHandler(404, "Opportunity not found"));
     }
-    
-    // Check if opportunity is open
+
     if (opportunity.status !== 'open') {
-      return next(errorHandler(400, "This opportunity is no longer accepting applications"));
-    }
-    
-    // Check if deadline has passed
-    if (new Date() > new Date(opportunity.deadline)) {
-      opportunity.status = 'expired';
-      await opportunity.save();
-      return next(errorHandler(400, "Application deadline has passed"));
-    }
-    
-    // Check if user has already applied
-    const alreadyApplied = opportunity.applicants.find(
-      applicant => applicant.userId.toString() === req.user.id
-    );
-    
-    if (alreadyApplied) {
-      return next(errorHandler(400, "You have already applied for this opportunity"));
+      return next(errorHandler(400, "Opportunity is not open for applications"));
     }
 
-    // Extract proof of work from request body
-    const { coverLetter, proofOfWork } = req.body;
-    
-    // Create an applicant record in the Applicant collection
-    const newApplicant = new Applicant({
-      userId: req.user.id,
-      opportunityId: id,
-      coverLetter: coverLetter || "No cover letter provided",
-      proofOfWork: {
-        screenshot: proofOfWork?.screenshot || null,
-        link: proofOfWork?.link || null
-      },
+    // Check if already applied
+    const existingApplication = await Applicant.findOne({
+      userId,
+      opportunityId
+    });
+
+    if (existingApplication) {
+      return next(errorHandler(400, "Already applied for this opportunity"));
+    }
+
+    // Create application
+    const application = new Applicant({
+      userId,
+      opportunityId,
+      coverLetter,
+      proofOfWork: proofOfWork || { screenshot: null, link: null },
       status: 'applied'
     });
-    
-    await newApplicant.save();
-    
-    // Add user to applicants list in opportunity
-    opportunity.applicants.push({
-      userId: req.user.id,
-      status: 'applied',
-      appliedAt: new Date()
+
+    await application.save();
+
+    // Add to opportunity's applicants array
+    await Opportunity.findByIdAndUpdate(
+      opportunityId,
+      {
+        $push: {
+          applicants: {
+            userId,
+            status: 'applied',
+            appliedAt: new Date()
+          }
+        }
+      }
+    );
+
+    // **AUTO UPDATE STUDENT PROFILE** - Add application to history
+    await autoUpdateStudentProfile(userId, opportunityId, 'applied');
+
+    res.status(201).json({
+      message: "Application submitted successfully and added to profile",
+      application
     });
-    
-    await opportunity.save();
-    
-    res.status(200).json({ 
-      message: "Application submitted successfully",
-      application: newApplicant
-    });
+
   } catch (error) {
     next(error);
   }
 };
-
- 
 
 // Update payment status
 export const updatePaymentStatus = async (req, res, next) => {
@@ -125,26 +124,26 @@ export const updatePaymentStatus = async (req, res, next) => {
 
 // Get opportunities a user has applied for
 export const getMyAppliedOpp = async (req, res, next) => {
-  /* Algo:
-        //1: Get user Id from Params
-        //2: FindAll Opp. Now sort by this applicants[0].userId === this id
-        //3: Return Opp.
-  */
-   try {
-    const {id} = req.params;
-    const myopp = await Opportunity.find({'applicants.userId': id,});
-    // const matchopp = allopp.filter((opp)=>
-    //   opp.applicants.some(applicant=>applicant.userId.toString()===id)
-    // );
-    if(myopp.length===0){
-      return res.status(404).json({message:"YOU DIDN'T APPLIED FOR ANY OPPORTUNITY"})
-    }
+  try {
+    const { userId } = req.params;
 
-    res.status(200).json(myopp);
-   } catch (error) {
-    console.error("Error fetching applied opportunity:", error);
+    // Get applications from Applicant model
+    const applications = await Applicant.find({ userId })
+      .populate('opportunityId', 'title description amount deadline status creator createdBy')
+      .sort({ appliedAt: -1 });
+
+    // Also get from student profile for consistency
+    const studentProfile = await StudentProfile.findOne({ userId });
+
+    res.status(200).json({
+      applications,
+      profileHistory: studentProfile?.opportunityHistory || [],
+      count: applications.length
+    });
+
+  } catch (error) {
     next(error);
-   }
+  }
 };
 
 // Get opportunities created by current company/user
@@ -189,19 +188,54 @@ export const getMyOpportunities = async (req, res, next) => {
   }
 };
 
-export const applicationId = async (req,res) => {
+export const applicationId = async (req, res, next) => {
   try {
-    const {applicationId} = req.params;
-    const applicant = await Applicant.findById(applicationId);
-    console.log("App id", applicant)
-     if(!applicant){
-      console.log("YOU DIDN'T APPLY FOR THIS OPPORTUNITY")
-       return res.status(500).json("YOU DIDN'T APPLY FOR ANY OPPORTUNITY")
-     }
-     res.status(200).json(applicant)
-  } catch (error) {
-    console.error("MEREKO NAHI PATA BHAIII,DEKH LO yeh ho sakta HH",error);
-    res.status(404).json("Internal server error");
-  }
-}
+    const { applicationId } = req.params;
 
+    const application = await Applicant.findById(applicationId)
+      .populate('userId', 'username email admissionNumber')
+      .populate('opportunityId', 'title description amount deadline status creator createdBy');
+
+    if (!application) {
+      return next(errorHandler(404, "Application not found"));
+    }
+
+    res.status(200).json(application);
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateApplicationStatus = async (req, res, next) => {
+  try {
+    const { applicationId } = req.params;
+    const { status, additionalData } = req.body;
+
+    const application = await Applicant.findByIdAndUpdate(
+      applicationId,
+      { status, updatedAt: new Date() },
+      { new: true }
+    );
+
+    if (!application) {
+      return next(errorHandler(404, "Application not found"));
+    }
+
+    // **AUTO UPDATE STUDENT PROFILE**
+    await autoUpdateStudentProfile(
+      application.userId, 
+      application.opportunityId, 
+      status, 
+      additionalData
+    );
+
+    res.status(200).json({
+      message: "Application status updated and profile synced",
+      application
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};

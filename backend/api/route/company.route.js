@@ -7,7 +7,8 @@ import {
   companyLogout,
   getCompanyProfile,
   getMyapplicants,
-  updateApplicantStatus
+  updateApplicantStatus,
+  markOpportunityCompleted  // NEW IMPORT
 } from "../controller/Company/company.controller.js";
  
 import {
@@ -57,10 +58,15 @@ router.delete("/:id", verifyCompanyOrAdmin, deleteOpportunity);
    router.get('/payments/opportunity/:oppId', MakePayment)
 
 // APPLICANT:
-   //API:1 TODO: to get the applicants of a particular opportunity
+   //API:1 to get the applicants of a particular opportunity
    router.get("/applicants/:id",verifyCompanyOrAdmin,getMyapplicants);
-   //API:2  TODO: to update the status of applicants from applied to selected or shortlisted
+   
+   //API:2 to update the status of applicants from applied to selected or shortlisted
+   // THIS NOW AUTO-UPDATES STUDENT PROFILE
    router.put("/applicants/status/:opportunityId/:userId",verifyCompanyOrAdmin,updateApplicantStatus);
+   
+   //API:3 NEW - to mark opportunity as completed in student profile
+   router.put("/applicants/complete/:opportunityId/:userId",verifyCompanyOrAdmin,markOpportunityCompleted);
 
 
 export default router;

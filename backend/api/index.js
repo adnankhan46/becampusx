@@ -21,7 +21,7 @@ import NotificationRoutes from "./route/notification.route.js";
 import applicantRouter from "./route/applicant.route.js"
 import companyRoutes from "./route/company.route.js";
 import adminRoutes from "./route/admin.route.js";
-
+import studentProfileRoutes from "./route/StudentProfile.route.js";
 dotenv.config();
 
 const app = express();
@@ -74,7 +74,7 @@ app.use("/api/company", companyRoutes);
 app.use("/api/opportunities", opportunityRoutes);
 app.use("/api/applicants", applicantRouter);
 app.use("/api/admin", adminRoutes);
-
+app.use("/api/student-profile", studentProfileRoutes);
 // Error handling middleware
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;

@@ -322,6 +322,7 @@ const ApplyForOpportunity = () => {
         <BottomBar/>
       </div>
     );
+ 
   }
 
   return (
