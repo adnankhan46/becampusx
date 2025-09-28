@@ -31,14 +31,21 @@ const data = {
     avatar: "/avatars/shadcn.jpg",
   },
   navMain: [
-   
-  
     {
-      title: "SUPERVISOR",
+      title: "Dashboard",
+      url: "/Dashboard",
+      icon: LayoutDashboardIcon,
+    },
+    {
+      title: "Feedback History",
+      url: "/Dashboard/allOpportunities",
+      icon: GalleryVerticalEnd,
+    },
+    {
+      title: " Students Mentoring",
       url: "/Dashboard/selectedApplicants",
       icon: UsersRound,
-    } 
-  
+    }
   ],
   navSecondary: [
     {

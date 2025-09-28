@@ -11,6 +11,9 @@ import AllApplications from "./pages/AllApplications";
 import Payments from "./pages/Payments";
 import Dashboard from "./pages/Dashboard";
 import { Button } from "./components/ui/button";
+import DashboardPage from "./pages/Dashboardpage";
+import StudentManagementPage from "./pages/StudentManagementPage";
+import FeedbackHistoryPage from "./pages/FeedbackHistory";
 
 const router = createBrowserRouter([
   {
@@ -23,15 +26,15 @@ const router = createBrowserRouter([
       children: [
       {
         path: "",
-        element: <Dashboard/>,
+        element: <DashboardPage/>,
       },  
       {
         path: "createOpportunity",
-        element: <CreateOpportunity/>,
+        element: <DashboardPage/>,
       },  
       {
         path: "allOpportunities",
-        element: <AllOpportunity/>,
+        element: <FeedbackHistoryPage/>,
       },  
       {
         path: "allApplicants/:oppId",
@@ -39,7 +42,7 @@ const router = createBrowserRouter([
       },  
       {
         path: "selectedApplicants",
-        element: <div>Selected Applications</div>,
+        element:  <StudentManagementPage/>,
       },  
       {
         path: "payments",

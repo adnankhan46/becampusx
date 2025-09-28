@@ -1,13 +1,36 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Badge, Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Star, Download } from "lucide-react"
 import { FeedbackHistory } from "./types"
 
+// Example Dummy Data
+const dummyHistory: FeedbackHistory[] = [
+  {
+    id: 1,
+    studentName: "John Doe",
+    internshipTitle: "Frontend Development",
+    rating: "Excellent",
+    recommendation: "Yes",
+    dateSubmitted: "2024-08-15",
+    certificateId: "CERT001"
+  },
+  {
+    id: 2,
+    studentName: "Jane Smith",
+    internshipTitle: "Backend Development",
+    rating: "Good",
+    recommendation: "Yes",
+    dateSubmitted: "2024-07-20",
+    certificateId: "CERT002"
+  }
+]
+
 interface FeedbackHistoryPageProps {
-  history: FeedbackHistory[]
+  history?: FeedbackHistory[] // Optional prop
 }
 
-export default function FeedbackHistoryPage({ history }: FeedbackHistoryPageProps) {
+export default function FeedbackHistoryPage({ history = [] }: FeedbackHistoryPageProps) {
   return (
     <Card>
       <CardHeader>
@@ -48,9 +71,22 @@ export default function FeedbackHistoryPage({ history }: FeedbackHistoryPageProp
                 </td>
               </tr>
             ))}
+            {history.length === 0 && (
+              <tr>
+                <td colSpan={6} className="text-center py-4 text-gray-500">
+                  No feedback history available.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </CardContent>
     </Card>
   )
+}
+
+ 
+
+export function FeedbackHistoryPageWrapper() {
+  return <FeedbackHistoryPage history={dummyHistory} />
 }

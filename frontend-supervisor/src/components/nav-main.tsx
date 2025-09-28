@@ -32,7 +32,7 @@ export function NavMain({
               className="cursor-pointer min-w-8 h-12 w-full bg-primary text-white duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90"
               >
               <PlusCircleIcon />
-              <span>Create Opportunity</span>
+              <span>Create Certificate</span>
             </SidebarMenuButton>
               </Link>
           <SidebarMenuItem className="flex items-center gap-2">
