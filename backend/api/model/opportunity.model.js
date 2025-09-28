@@ -31,6 +31,19 @@ const opportunitySchema = new mongoose.Schema({
     type: Date,
     required: true
   },
+  // NEW: Skills required for this opportunity
+  skills: [{
+    name: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    level: {
+      type: String,
+      enum: ['Beginner', 'Intermediate', 'Advanced', 'Expert'],
+      default: 'Beginner'
+    }
+  }],
   proofOfWork: {
     screenshot: {
       type: String,
@@ -117,6 +130,7 @@ const opportunitySchema = new mongoose.Schema({
 opportunitySchema.index({ status: 1, deadline: 1 });
 opportunitySchema.index({ creator: 1, 'createdBy.id': 1 });
 opportunitySchema.index({ type: 1 });
+opportunitySchema.index({ 'skills.name': 1 }); // NEW: Index for skills
 
 // Virtual for calculating if deadline has passed
 opportunitySchema.virtual('isExpired').get(function() {

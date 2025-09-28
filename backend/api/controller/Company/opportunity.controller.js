@@ -3,10 +3,21 @@ import Opportunity from "../../model/opportunity.model.js";
 import Company from "../../model/company.model.js";
 import User from "../../model/user.model.js";
 import { errorHandler } from "../../middlewares/error.js";
+
 // Create a new opportunity
 export const createOpportunity = async (req, res, next) => {
   try {
-    const { title, description, numberOfOpenings, isPaid, amount, deadline, proofOfWork, type } = req.body;
+    const { 
+      title, 
+      description, 
+      numberOfOpenings, 
+      isPaid, 
+      amount, 
+      deadline, 
+      proofOfWork, 
+      type, 
+      skills // NEW: Skills array
+    } = req.body;
 
     // Validate required fields
     if (!title || !description || !numberOfOpenings || isPaid === undefined || !deadline || !type) {
@@ -17,10 +28,24 @@ export const createOpportunity = async (req, res, next) => {
     if (isPaid && (!amount || amount <= 0)) {
       return next(errorHandler(400, "Please provide a valid amount for paid opportunity"));
     }
+
     // Validate deadline is in the future
     const deadlineDate = new Date(deadline);
     if (deadlineDate <= new Date()) {
       return next(errorHandler(400, "Deadline must be in the future"));
+    }
+
+    // Validate skills format if provided
+    if (skills && Array.isArray(skills)) {
+      const validLevels = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
+      for (const skill of skills) {
+        if (!skill.name || typeof skill.name !== 'string') {
+          return next(errorHandler(400, "Each skill must have a valid name"));
+        }
+        if (skill.level && !validLevels.includes(skill.level)) {
+          return next(errorHandler(400, `Invalid skill level. Must be one of: ${validLevels.join(', ')}`));
+        }
+      }
     }
 
     let creatorModel;
@@ -50,6 +75,7 @@ export const createOpportunity = async (req, res, next) => {
       isPaid,
       amount: isPaid ? amount : 0,
       deadline: deadlineDate,
+      skills: skills || [], // NEW: Include skills
       proofOfWork: proofOfWork || { screenshot: null, link: null },
       type,
       status: 'open',
@@ -67,96 +93,6 @@ export const createOpportunity = async (req, res, next) => {
   }
 };
 
-// Get all opportunities (with filters)
-// export const getOpportunities = async (req, res, next) => {
-//   try {
-//     console.log("Starting getOpportunities");
-//     const { status, type, isPaid, creator, page = 1, limit = 10, sort = '-createdAt' } = req.query;
-
-//     // Validate and convert pagination parameters
-//     const pageNum = parseInt(page) || 1;
-//     const limitNum = parseInt(limit) || 10;
-//     const skip = (pageNum - 1) * limitNum;
-
-//     console.log(`Pagination: page=${pageNum}, limit=${limitNum}, skip=${skip}`);
-
-//     // Build query object
-//     const query = {};
-//     if (status) query.status = status;
-//     if (type) query.type = type;
-//     if (isPaid !== undefined) query.isPaid = isPaid === 'true';
-//     if (creator) query.creator = creator;
-
-//     console.log("Query filters:", JSON.stringify(query));
-
-//     // First get total count for pagination info (not affected by pre-find middleware)
-//     const totalCount = await Opportunity.countDocuments(query);
-//     console.log(`Total count: ${totalCount}`);
-
-//     // Get raw data from MongoDB to check what's in the database
-//     const db = mongoose.connection.db;
-//     const opportunitiesCollection = db.collection('opportunities');
-//     const rawOpportunities = await opportunitiesCollection.find(query).toArray();
-//     console.log(`Raw MongoDB documents: ${rawOpportunities.length}`);
-    
-//     if (rawOpportunities.length > 0) {
-//       console.log("First raw opportunity:", JSON.stringify(rawOpportunities[0]._id));
-//     }
-
-//     // Try with explicit find that avoids pre-find middleware
-//     const opportunities = await Opportunity.find(query)
-//       .sort(sort)
-//       .skip(skip)
-//       .limit(limitNum)
-//       .setOptions({ skipMiddleware: true }); // Try to bypass middleware if possible
-    
-//     console.log(`Retrieved ${opportunities.length} opportunities with middleware bypass attempt`);
-    
-//     // If still empty, try with a direct aggregation
-//     if (opportunities.length === 0) {
-//       console.log("Attempting direct aggregation...");
-//       const aggregateResults = await Opportunity.aggregate([
-//         { $match: query },
-//         { $sort: { createdAt: -1 } },
-//         { $skip: skip },
-//         { $limit: limitNum }
-//       ]);
-      
-//       console.log(`Aggregation returned ${aggregateResults.length} results`);
-      
-//       if (aggregateResults.length > 0) {
-//         console.log("Using aggregation results");
-//         // Return the aggregation results
-//         res.status(200).json({
-//           opportunities: aggregateResults,
-//           totalPages: Math.ceil(totalCount / limitNum),
-//           currentPage: pageNum,
-//           totalCount
-//         });
-//         return;
-//       }
-//     }
-    
- 
-//     // If we get here, use whatever the find returned (even if empty)
-//     const opportunitiesData = opportunities.map(opp => {
-//       return opp.toObject({ virtuals: true });
-//     });
-    
-//     // Send response
-//     res.status(200).json({
-//       opportunities: opportunitiesData,
-//       totalPages: Math.ceil(totalCount / limitNum),
-//       currentPage: pageNum,
-//       totalCount
-//     });
-    
-//     console.log("Response sent successfully");
-//   } catch (error) {
-//     console.error("Error in getOpportunities:", error);
-//     next(error);
-//   }
-// };
 // Get opportunity by ID
 export const getOpportunityById = async (req, res, next) => {
   try {
@@ -176,25 +112,32 @@ export const getOpportunityById = async (req, res, next) => {
 
 export const getAllOpportunities = async (req,res,next) => {
   try {
-    const { page = 1, limit = 6 } = req.query;
+    const { page = 1, limit = 6, skills: skillsFilter } = req.query;
 
     // Ensure page and limit are numbers
     const pageNumber = parseInt(page, 10);
     const limitNumber = parseInt(limit, 10);
 
-    // Fetch opp 
-    const opportunities = await Opportunity.find()
+    // Build query for skills filtering
+    let query = {};
+    if (skillsFilter) {
+      const skillsArray = Array.isArray(skillsFilter) ? skillsFilter : [skillsFilter];
+      query['skills.name'] = { $in: skillsArray };
+    }
+
+    // Fetch opportunities with optional skills filtering
+    const opportunities = await Opportunity.find(query)
       .sort({ createdAt: -1 })
       .skip((pageNumber - 1) * limitNumber)
       .limit(limitNumber);
 
-    // Total number of the user (for pagination logic)
-    const totalOpp = await Opportunity.countDocuments();
+    // Total number of opportunities (for pagination logic)
+    const totalOpp = await Opportunity.countDocuments(query);
 
     // Check if there are more posts to fetch
     const hasMore = (pageNumber * limitNumber) < totalOpp;
 
-    // Return opp and pagination data
+    // Return opportunities and pagination data
     res.status(200).json({
       opportunities,
       currentPage: pageNumber,
@@ -202,7 +145,7 @@ export const getAllOpportunities = async (req,res,next) => {
       hasMore: hasMore // Pagination check
     });
   } catch (error) {
-    console.error('Error fetching posts:', error);
+    console.error('Error fetching opportunities:', error);
     res.status(400).json({ message: 'Server error' });
   }
 }
@@ -268,7 +211,6 @@ export const getOpportunityByCompanyId = async (req, res, next) => {
   }
 };
 
-
 // Update opportunity
 export const updateOpportunity = async (req, res, next) => {
   try {
@@ -302,6 +244,19 @@ export const updateOpportunity = async (req, res, next) => {
     // Validate amount if isPaid is updated to true
     if (updates.isPaid === true && (!updates.amount || updates.amount <= 0)) {
       return next(errorHandler(400, "Please provide a valid amount for paid opportunity"));
+    }
+
+    // Validate skills format if provided
+    if (updates.skills && Array.isArray(updates.skills)) {
+      const validLevels = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
+      for (const skill of updates.skills) {
+        if (!skill.name || typeof skill.name !== 'string') {
+          return next(errorHandler(400, "Each skill must have a valid name"));
+        }
+        if (skill.level && !validLevels.includes(skill.level)) {
+          return next(errorHandler(400, `Invalid skill level. Must be one of: ${validLevels.join(', ')}`));
+        }
+      }
     }
     
     const updatedOpportunity = await Opportunity.findByIdAndUpdate(
