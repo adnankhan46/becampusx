@@ -233,7 +233,7 @@ export default function FeedbackHistoryPage() {
                         )}
                       </div>
                     </td>
-                  </tr>
+                  </motion.tr>
                 ))}
               </tbody>
             </table>
