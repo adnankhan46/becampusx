@@ -14,6 +14,7 @@ import Applicant from "./pages/Provider/Applicant";
 import Opportunity from "./pages/Provider/Opportunity";
 import Payment from "./pages/Provider/Payment";
 import { Button } from "./components/ui/button";
+import SupervisorManagement from "./pages/SupervisorManagement"
 const router = createBrowserRouter( [
     {
       path: "/",
@@ -33,7 +34,7 @@ const router = createBrowserRouter( [
       children: [
         {
            path: "a",
-           element: <Client/>,  // element 1
+           element: <SupervisorManagement/>,  // element 1
         },
          {
            path: "b",
