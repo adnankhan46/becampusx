@@ -42,7 +42,7 @@ const data = {
       icon: GalleryVerticalEnd,
     },
     {
-      title: "Selected Applicants",
+      title: " Applicants Status",
       url: "/Dashboard/selectedApplicants",
       icon: UsersRound,
     },

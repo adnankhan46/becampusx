@@ -39,7 +39,7 @@ const router = createBrowserRouter([
       },  
       {
         path: "selectedApplicants",
-        element: <div>Selected Applications</div>,
+        element:  <AllApplications/>,
       },  
       {
         path: "payments",
