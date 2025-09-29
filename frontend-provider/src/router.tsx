@@ -11,6 +11,7 @@ import AllApplications from "./pages/AllApplications";
 import Payments from "./pages/Payments";
 import Dashboard from "./pages/Dashboard";
 import { Button } from "./components/ui/button";
+import ShortlistedStudents from "./pages/AllOpportunity";
 
 const router = createBrowserRouter([
   {
@@ -31,7 +32,7 @@ const router = createBrowserRouter([
       },  
       {
         path: "allOpportunities",
-        element: <AllOpportunity/>,
+        element: <ShortlistedStudents/>,
       },  
       {
         path: "allApplicants/:oppId",

@@ -1,15 +1,14 @@
 import React, { useState, useMemo } from 'react';
-import { Calendar, DollarSign, Users, Clock, Filter, Search, Eye, CheckCircle, XCircle, TrendingUp, Briefcase, Award, Star } from 'lucide-react';
+import { Calendar, Users, Clock, Filter, Search, Eye, CheckCircle, Briefcase, Award, Star, Building2 } from 'lucide-react';
 
-// Mock data for demonstration
+// Mock data for demonstration with Indian names
 const mockOpportunities = [
   {
     _id: '1',
     title: 'Frontend Developer Internship',
     description: 'Join our team to build modern web applications using React and TypeScript. Work on real-world projects with experienced developers.',
+    companyName: 'Tech Solutions India Pvt. Ltd.',
     numberOfOpenings: 3,
-    isPaid: true,
-    amount: 15000,
     deadline: '2025-10-15',
     type: 'development',
     status: 'open',
@@ -19,20 +18,18 @@ const mockOpportunities = [
       { name: 'HTML/CSS', level: 'Intermediate' }
     ],
     applicants: [
-      { userId: { name: 'John Doe', email: 'john@example.com' } },
-      { userId: { name: 'Jane Smith', email: 'jane@example.com' } }
+      { userId: { name: 'Rahul Sharma', email: 'rahul.sharma@example.com' } },
+      { userId: { name: 'Priya Patel', email: 'priya.patel@example.com' } }
     ],
     selectedCandidates: [],
-    createdAt: '2025-09-20',
-    createdBy: { name: 'Tech Solutions Inc.' }
+    createdAt: '2025-09-20'
   },
   {
     _id: '2',
     title: 'UI/UX Design Project',
     description: 'Design intuitive user interfaces for our mobile app. Create wireframes, mockups, and interactive prototypes.',
+    companyName: 'Creative Minds Studio',
     numberOfOpenings: 2,
-    isPaid: true,
-    amount: 12000,
     deadline: '2025-10-20',
     type: 'design',
     status: 'open',
@@ -42,23 +39,21 @@ const mockOpportunities = [
       { name: 'Prototyping', level: 'Intermediate' }
     ],
     applicants: [
-      { userId: { name: 'Alice Johnson', email: 'alice@example.com' } },
-      { userId: { name: 'Bob Wilson', email: 'bob@example.com' } },
-      { userId: { name: 'Carol Davis', email: 'carol@example.com' } }
+      { userId: { name: 'Anjali Deshmukh', email: 'anjali.d@example.com' } },
+      { userId: { name: 'Vikram Singh', email: 'vikram.s@example.com' } },
+      { userId: { name: 'Sneha Reddy', email: 'sneha.r@example.com' } }
     ],
     selectedCandidates: [
-      { userId: { name: 'Alice Johnson', email: 'alice@example.com' } }
+      { userId: { name: 'Anjali Deshmukh', email: 'anjali.d@example.com' } }
     ],
-    createdAt: '2025-09-18',
-    createdBy: { name: 'Design Studio Pro' }
+    createdAt: '2025-09-18'
   },
   {
     _id: '3',
     title: 'Market Research Survey',
     description: 'Conduct comprehensive market research for our new product launch. Analyze consumer trends and compile detailed reports.',
+    companyName: 'Market Insights India Ltd.',
     numberOfOpenings: 5,
-    isPaid: false,
-    amount: 0,
     deadline: '2025-11-01',
     type: 'research',
     status: 'open',
@@ -67,19 +62,17 @@ const mockOpportunities = [
       { name: 'Communication', level: 'Intermediate' }
     ],
     applicants: [
-      { userId: { name: 'David Lee', email: 'david@example.com' } }
+      { userId: { name: 'Arjun Mehta', email: 'arjun.m@example.com' } }
     ],
     selectedCandidates: [],
-    createdAt: '2025-09-25',
-    createdBy: { name: 'Market Insights Ltd.' }
+    createdAt: '2025-09-25'
   },
   {
     _id: '4',
     title: 'Content Writing - Tech Blog',
     description: 'Write engaging technical articles about web development, AI, and emerging technologies. 5-7 articles per month.',
+    companyName: 'Digital Media Solutions',
     numberOfOpenings: 4,
-    isPaid: true,
-    amount: 8000,
     deadline: '2025-10-10',
     type: 'marketing',
     status: 'open',
@@ -89,25 +82,23 @@ const mockOpportunities = [
       { name: 'Technical Writing', level: 'Intermediate' }
     ],
     applicants: [
-      { userId: { name: 'Emma Brown', email: 'emma@example.com' } },
-      { userId: { name: 'Frank Miller', email: 'frank@example.com' } },
-      { userId: { name: 'Grace Taylor', email: 'grace@example.com' } },
-      { userId: { name: 'Henry Anderson', email: 'henry@example.com' } }
+      { userId: { name: 'Kavya Nair', email: 'kavya.n@example.com' } },
+      { userId: { name: 'Rohan Kapoor', email: 'rohan.k@example.com' } },
+      { userId: { name: 'Divya Iyer', email: 'divya.i@example.com' } },
+      { userId: { name: 'Aarav Gupta', email: 'aarav.g@example.com' } }
     ],
     selectedCandidates: [
-      { userId: { name: 'Emma Brown', email: 'emma@example.com' } },
-      { userId: { name: 'Frank Miller', email: 'frank@example.com' } }
+      { userId: { name: 'Kavya Nair', email: 'kavya.n@example.com' } },
+      { userId: { name: 'Rohan Kapoor', email: 'rohan.k@example.com' } }
     ],
-    createdAt: '2025-09-15',
-    createdBy: { name: 'TechBlog Media' }
+    createdAt: '2025-09-15'
   },
   {
     _id: '5',
     title: 'Full Stack Development Project',
     description: 'Build a complete e-commerce platform with React frontend and Node.js backend. Includes payment integration and admin dashboard.',
+    companyName: 'InnovateX Technologies',
     numberOfOpenings: 1,
-    isPaid: true,
-    amount: 25000,
     deadline: '2025-10-25',
     type: 'development',
     status: 'open',
@@ -118,20 +109,18 @@ const mockOpportunities = [
       { name: 'REST API', level: 'Advanced' }
     ],
     applicants: [
-      { userId: { name: 'Ivy Chen', email: 'ivy@example.com' } },
-      { userId: { name: 'Jack Wilson', email: 'jack@example.com' } }
+      { userId: { name: 'Ishaan Joshi', email: 'ishaan.j@example.com' } },
+      { userId: { name: 'Meera Pillai', email: 'meera.p@example.com' } }
     ],
     selectedCandidates: [],
-    createdAt: '2025-09-22',
-    createdBy: { name: 'E-Commerce Solutions' }
+    createdAt: '2025-09-22'
   },
   {
     _id: '6',
     title: 'Social Media Management',
     description: 'Manage Instagram, Twitter, and LinkedIn accounts. Create engaging content, schedule posts, and analyze performance metrics.',
+    companyName: 'Brand Boost Digital',
     numberOfOpenings: 2,
-    isPaid: true,
-    amount: 10000,
     deadline: '2025-10-30',
     type: 'marketing',
     status: 'open',
@@ -142,8 +131,7 @@ const mockOpportunities = [
     ],
     applicants: [],
     selectedCandidates: [],
-    createdAt: '2025-09-28',
-    createdBy: { name: 'Brand Boost Agency' }
+    createdAt: '2025-09-28'
   }
 ];
 
@@ -166,7 +154,6 @@ const skillLevelColors = {
 function AllApplications() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
-  const [filterPaid, setFilterPaid] = useState('all');
   const [selectedOpp, setSelectedOpp] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
 
@@ -174,15 +161,13 @@ function AllApplications() {
   const filteredOpportunities = useMemo(() => {
     return mockOpportunities.filter(opp => {
       const matchesSearch = opp.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           opp.description.toLowerCase().includes(searchTerm.toLowerCase());
+                           opp.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           opp.companyName.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesType = filterType === 'all' || opp.type === filterType;
-      const matchesPaid = filterPaid === 'all' || 
-                         (filterPaid === 'paid' && opp.isPaid) || 
-                         (filterPaid === 'unpaid' && !opp.isPaid);
       
-      return matchesSearch && matchesType && matchesPaid;
+      return matchesSearch && matchesType;
     });
-  }, [searchTerm, filterType, filterPaid]);
+  }, [searchTerm, filterType]);
 
   // Statistics
   const stats = {
@@ -275,7 +260,7 @@ function AllApplications() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search opportunities by title or description..."
+                placeholder="Search opportunities by title, description, or company..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -292,7 +277,7 @@ function AllApplications() {
           </div>
 
           {showFilters && (
-            <div className="mt-4 pt-4 border-t grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="mt-4 pt-4 border-t">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
                 <select
@@ -306,19 +291,6 @@ function AllApplications() {
                   <option value="marketing">Marketing</option>
                   <option value="research">Research</option>
                   <option value="academic">Academic</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Payment</label>
-                <select
-                  value={filterPaid}
-                  onChange={(e) => setFilterPaid(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="all">All</option>
-                  <option value="paid">Paid Only</option>
-                  <option value="unpaid">Unpaid Only</option>
                 </select>
               </div>
             </div>
@@ -354,6 +326,15 @@ function AllApplications() {
 
               {/* Content */}
               <div className="p-6 space-y-4">
+                {/* Company Name */}
+                <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                  <Building2 className="h-5 w-5 text-blue-600" />
+                  <div className="flex-1">
+                    <p className="text-xs text-gray-600 font-medium">Company</p>
+                    <p className="font-semibold text-gray-900">{opp.companyName}</p>
+                  </div>
+                </div>
+
                 {/* Key Info */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center gap-2 text-gray-700">
@@ -364,25 +345,12 @@ function AllApplications() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 text-gray-700">
-                    <DollarSign className="h-5 w-5 text-green-600" />
-                    <div>
-                      <p className="text-xs text-gray-500">Compensation</p>
-                      <p className="font-semibold">
-                        {opp.isPaid ? `₹${opp.amount.toLocaleString()}` : 'Unpaid'}
-                      </p>
+                  <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${getDeadlineColor(daysRemaining)}`}>
+                    <Clock className="h-5 w-5" />
+                    <div className="flex-1">
+                      <p className="text-xs font-medium">Deadline</p>
+                      <p className="font-semibold text-sm">{daysRemaining} days</p>
                     </div>
-                  </div>
-                </div>
-
-                {/* Deadline */}
-                <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${getDeadlineColor(daysRemaining)}`}>
-                  <Clock className="h-5 w-5" />
-                  <div className="flex-1">
-                    <p className="text-xs font-medium">Deadline</p>
-                    <p className="font-semibold text-sm">
-                      {new Date(opp.deadline).toLocaleDateString()} ({daysRemaining} days left)
-                    </p>
                   </div>
                 </div>
 
