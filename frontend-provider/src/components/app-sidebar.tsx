@@ -46,11 +46,11 @@ const data = {
       url: "/Dashboard/selectedApplicants",
       icon: UsersRound,
     },
-    {
-      title: "Payment Status",
-      url: "/Dashboard/payments",
-      icon: CreditCard,
-    },
+    // {
+    //   title: "Payment Status",
+    //   url: "/Dashboard/payments",
+    //   icon: CreditCard,
+    // },
     {
       title: "Notifications",
       url: "/Dashboard/notifications",
