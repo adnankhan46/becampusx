@@ -46,7 +46,7 @@ router.put("/update-profile", updateCompanyProfile);
 
 // OPPORTUNITY: for Company/Provider
 router.post("/create", verifyCompanyOrAdmin, createOpportunity); // for comp
-router.get("/myopportunities/:id", verifyCompanyOrAdmin, getOpportunityByCompanyId); // for showing in Company's Profile
+router.get("/myopportunities/:id",   getOpportunityByCompanyId); // for showing in Company's Profile
 ///
 router.get("/:id", getOpportunityById); // when click on an Opportunity, For User/Admin/Company : [COMMON]
 ///
