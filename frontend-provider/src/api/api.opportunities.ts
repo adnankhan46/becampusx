@@ -1,48 +1,30 @@
-// api/api.opportunities.ts
+import axios from 'axios';
 
-// Skill interface
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
+// Interfaces
 export interface Skill {
   name: string;
   level: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
 }
 
-// Creator interface
-export interface Creator {
-  id: string;
-  name: string;
-}
-
-// Applicant interface
-export interface Applicant {
-  userId: string;
-  status: 'applied' | 'shortlisted' | 'selected' | 'rejected';
-  appliedAt: string;
-}
-
-// Payment Status interface
-export interface PaymentStatus {
-  firstPayment: {
-    status: boolean;
-    date: string | null;
+export interface CreateOppRequest {
+  title: string;
+  description: string;
+  numberOfOpenings: number;
+  isPaid: boolean;
+  amount: number;
+  type: string;
+  status: string;
+  creator: string;
+  createdBy: {
+    id: string;
+    name: string;
   };
-  secondPayment: {
-    status: boolean;
-    date: string | null;
-  };
+  deadline: string;
+  skills?: Skill[];
 }
 
-// Selected Candidate interface
-export interface SelectedCandidate {
-  userId: string;
-}
-
-// Proof of Work interface
-export interface ProofOfWork {
-  screenshot: string | null;
-  link: string | null;
-}
-
-// Main Opportunity interface
 export interface Opportunity {
   _id: string;
   title: string;
@@ -51,50 +33,24 @@ export interface Opportunity {
   isPaid: boolean;
   amount: number;
   deadline: string;
-  skills: Skill[]; // NEW: Skills array
-  proofOfWork: ProofOfWork;
-  type: 'engagement' | 'survey' | 'academic' | 'development' | 'marketing' | 'design' | 'research' | 'other';
-  status: 'open' | 'closed' | 'filled' | 'expired';
-  creator: 'Company' | 'User';
-  createdBy: Creator;
-  applicants: Applicant[];
-  paymentStatus: PaymentStatus;
-  selectedCandidates: SelectedCandidate[];
-  createdAt: string;
-  updatedAt: string;
-  isExpired?: boolean; // Virtual field
-}
-
-// Request interfaces
-export interface CreateOppRequest {
-  title: string;
-  description: string;
-  numberOfOpenings: number;
-  isPaid: boolean;
-  amount: number;
-  deadline: string;
-  skills?: Skill[]; // NEW: Optional skills array
-  proofOfWork?: ProofOfWork;
+  skills?: Skill[];
+  proofOfWork?: {
+    screenshot: string | null;
+    link: string | null;
+  };
   type: string;
   status: string;
   creator: string;
-  createdBy: Creator;
+  createdBy: {
+    id: string;
+    name: string;
+  };
+  applicants?: any[];
+  selectedCandidates?: any[];
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface UpdateOppRequest {
-  title?: string;
-  description?: string;
-  numberOfOpenings?: number;
-  isPaid?: boolean;
-  amount?: number;
-  deadline?: string;
-  skills?: Skill[]; // NEW: Optional skills array for updates
-  proofOfWork?: ProofOfWork;
-  type?: string;
-  status?: string;
-}
-
-// Response interfaces
 export interface OpportunitiesResponse {
   opportunities: Opportunity[];
   currentPage: number;
@@ -103,183 +59,208 @@ export interface OpportunitiesResponse {
   totalCount?: number;
 }
 
-export interface OpportunityResponse {
-  opportunity: Opportunity;
-}
-
-// Filter interface
-export interface OpportunityFilters {
-  page?: number;
-  limit?: number;
-  status?: string;
-  type?: string;
-  isPaid?: boolean;
-  creator?: string;
-  skills?: string[]; // NEW: Filter by skills
-  sort?: string;
-}
-
-// API Service Class
-class OpportunityService {
-  private static baseURL = '/api/company'; // Adjust based on your API base URL
-  
-  // Get authorization headers
-  private static getAuthHeaders() {
-    const token = localStorage.getItem('token'); // Adjust based on how you store tokens
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': token ? `Bearer ${token}` : '',
-    };
-  }
-
-  // Create opportunity
-  static async CreateOpportunity(data: CreateOppRequest): Promise<Opportunity> {
-    const response = await fetch(`${this.baseURL}/create`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to create opportunity');
-    }
-
-    return await response.json();
-  }
-
-  // Get all opportunities
-  static async GetAllOpportunities(filters?: OpportunityFilters): Promise<OpportunitiesResponse> {
-    const queryParams = new URLSearchParams();
+// Helper function to get token
+const getAuthToken = (): string | null => {
+  try {
+    // Method 1: Direct from Zustand persist storage
+    const companyStorage = localStorage.getItem('company-storage');
     
-    if (filters?.page) queryParams.append('page', filters.page.toString());
-    if (filters?.limit) queryParams.append('limit', filters.limit.toString());
-    if (filters?.status) queryParams.append('status', filters.status);
-    if (filters?.type) queryParams.append('type', filters.type);
-    if (filters?.isPaid !== undefined) queryParams.append('isPaid', filters.isPaid.toString());
-    if (filters?.creator) queryParams.append('creator', filters.creator);
-    if (filters?.skills && filters.skills.length > 0) {
-      filters.skills.forEach(skill => queryParams.append('skills', skill));
+    if (companyStorage) {
+      const parsed = JSON.parse(companyStorage);
+      console.log('Full localStorage structure:', parsed);
+      
+      // Zustand persist stores in: { state: { company: { ...data } }, version: 0 }
+      const token = parsed.state?.company?.token;
+      
+      if (token) {
+        console.log('✓ Token found from company-storage');
+        return token;
+      } else {
+        console.error('✗ Token not found in expected location');
+        console.log('Expected path: parsed.state.company.token');
+        console.log('Company data:', parsed.state?.company);
+      }
+    } else {
+      console.error('✗ company-storage not found in localStorage');
     }
-    if (filters?.sort) queryParams.append('sort', filters.sort);
-
-    const response = await fetch(`/api/applicants/getAllOpp?${queryParams}`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to fetch opportunities');
-    }
-
-    return await response.json();
+    
+    return null;
+  } catch (error) {
+    console.error('Error getting token:', error);
+    return null;
   }
+};
 
-  // Get opportunity by ID
-  static async GetOpportunityById(id: string): Promise<Opportunity> {
-    const response = await fetch(`${this.baseURL}/${id}`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    });
+// Axios instance with auth token
+const apiClient = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to fetch opportunity');
+// Add token to requests
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = getAuthToken();
+    
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+      console.log('Authorization header set');
+    } else {
+      console.warn('No token available for request');
     }
-
-    return await response.json();
+    
+    return config;
+  },
+  (error) => {
+    console.error('Request interceptor error:', error);
+    return Promise.reject(error);
   }
+);
+
+// Add response interceptor for better error handling
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      console.error('❌ 401 Unauthorized Error');
+      console.error('   Request URL:', error.config?.url);
+      console.error('   Headers sent:', error.config?.headers);
+      
+      // Check if token exists in storage
+      const storage = localStorage.getItem('company-storage');
+      if (storage) {
+        try {
+          const parsed = JSON.parse(storage);
+          const hasToken = !!parsed.state?.company?.token;
+          console.error('   Token in storage:', hasToken);
+          if (hasToken) {
+            console.error('   ⚠️ Token exists but request failed - token may be expired or invalid');
+          }
+        } catch (e) {
+          console.error('   Error checking storage:', e);
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+const OpportunityService = {
+  // Create a new opportunity
+  CreateOpportunity: async (data: CreateOppRequest): Promise<Opportunity> => {
+    console.log('Creating opportunity with data:', data);
+    const response = await apiClient.post('/company/create', data);
+    return response.data;
+  },
+
+  // Get all opportunities (public - from separate route if you have one)
+  GetAllOpportunities: async (params?: {
+    page?: number;
+    limit?: number;
+    skills?: string[];
+  }): Promise<OpportunitiesResponse> => {
+    const response = await apiClient.get('/opportunities/all', { params });
+    return response.data;
+  },
 
   // Get opportunities by company ID
-  static async GetOpportunitiesByCompanyId(
-    companyId: string, 
-    filters?: OpportunityFilters
-  ): Promise<OpportunitiesResponse> {
-    const queryParams = new URLSearchParams();
+  GetCompanyOpportunities: async (companyId: string, params?: {
+    page?: number;
+    limit?: number;
+    sort?: string;
+  }): Promise<OpportunitiesResponse> => {
+    console.log('🔍 GetCompanyOpportunities called');
+    console.log('   Company ID:', companyId);
+    console.log('   Params:', params);
     
-    if (filters?.page) queryParams.append('page', filters.page.toString());
-    if (filters?.limit) queryParams.append('limit', filters.limit.toString());
-    if (filters?.sort) queryParams.append('sort', filters.sort);
-
-    const response = await fetch(`${this.baseURL}/myopportunities/${companyId}?${queryParams}`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to fetch company opportunities');
+    // Debug: Check token before request
+    const token = getAuthToken();
+    console.log('   Token available:', !!token);
+    if (token) {
+      console.log('   Token preview:', token.substring(0, 30) + '...');
+    } else {
+      console.error('   ❌ NO TOKEN - Request will fail with 401');
+      
+      // Check storage directly
+      const storage = localStorage.getItem('company-storage');
+      if (storage) {
+        const parsed = JSON.parse(storage);
+        console.log('   Storage structure:', {
+          hasState: !!parsed.state,
+          hasCompany: !!parsed.state?.company,
+          hasToken: !!parsed.state?.company?.token
+        });
+      }
     }
+    
+    const response = await apiClient.get(`/company/myopportunities/${companyId}`, { params });
+    console.log('   ✅ Response received:', response.data);
+    return response.data;
+  },
 
-    return await response.json();
-  }
+  // Get opportunity by ID
+  GetOpportunityById: async (id: string): Promise<Opportunity> => {
+    const response = await apiClient.get(`/company/${id}`);
+    return response.data;
+  },
 
   // Update opportunity
-  static async UpdateOpportunity(id: string, data: UpdateOppRequest): Promise<Opportunity> {
-    const response = await fetch(`${this.baseURL}/${id}`, {
-      method: 'PUT',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to update opportunity');
-    }
-
-    return await response.json();
-  }
+  UpdateOpportunity: async (id: string, data: Partial<CreateOppRequest>): Promise<Opportunity> => {
+    const response = await apiClient.put(`/company/${id}`, data);
+    return response.data;
+  },
 
   // Delete opportunity
-  static async DeleteOpportunity(id: string): Promise<{ message: string }> {
-    const response = await fetch(`${this.baseURL}/${id}`, {
-      method: 'DELETE',
-      headers: this.getAuthHeaders(),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to delete opportunity');
-    }
-
-    return await response.json();
-  }
+  DeleteOpportunity: async (id: string): Promise<{ message: string }> => {
+    const response = await apiClient.delete(`/company/${id}`);
+    return response.data;
+  },
 
   // Close opportunity
-  static async CloseOpportunity(id: string): Promise<{ message: string; opportunity: Opportunity }> {
-    const response = await fetch(`${this.baseURL}/${id}/close`, {
-      method: 'PUT',
-      headers: this.getAuthHeaders(),
-    });
+  CloseOpportunity: async (id: string): Promise<{ message: string; opportunity: Opportunity }> => {
+    const response = await apiClient.put(`/company/${id}/close`);
+    return response.data;
+  },
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to close opportunity');
-    }
+  // Get applicants for an opportunity
+  GetApplicants: async (opportunityId: string): Promise<any> => {
+    const response = await apiClient.get(`/company/applicants/${opportunityId}`);
+    return response.data;
+  },
 
-    return await response.json();
-  }
+  // Update applicant status
+  UpdateApplicantStatus: async (
+    opportunityId: string,
+    userId: string,
+    data: { status: string; additionalData?: any }
+  ): Promise<any> => {
+    const response = await apiClient.put(
+      `/company/applicants/status/${opportunityId}/${userId}`,
+      data
+    );
+    return response.data;
+  },
 
-  // Get unique skills across all opportunities (utility method)
-  static async GetAllSkills(): Promise<string[]> {
-    try {
-      const response = await this.GetAllOpportunities({ limit: 1000 }); // Get a large number of opportunities
-      const allSkills = new Set<string>();
-      
-      response.opportunities.forEach(opp => {
-        opp.skills?.forEach(skill => {
-          allSkills.add(skill.name);
-        });
-      });
-      
-      return Array.from(allSkills).sort();
-    } catch (error) {
-      console.error('Failed to fetch skills:', error);
-      return [];
-    }
-  }
-}
+  // Mark opportunity as completed
+  MarkOpportunityCompleted: async (
+    opportunityId: string,
+    userId: string,
+    data?: any
+  ): Promise<any> => {
+    const response = await apiClient.put(
+      `/company/applicants/complete/${opportunityId}/${userId}`,
+      data
+    );
+    return response.data;
+  },
+
+  // Get payment info for opportunity
+  GetPaymentInfo: async (opportunityId: string): Promise<any> => {
+    const response = await apiClient.get(`/company/payments/opportunity/${opportunityId}`);
+    return response.data;
+  },
+};
 
 export default OpportunityService;
-export type { CreateOppRequest, UpdateOppRequest, Opportunity, OpportunityFilters };

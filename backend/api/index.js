@@ -22,7 +22,7 @@ import applicantRouter from "./route/applicant.route.js"
 import companyRoutes from "./route/company.route.js";
 import adminRoutes from "./route/admin.route.js";
 import studentProfileRoutes from "./route/StudentProfile.route.js";
-import supervisorRoutes from "./api/route/supervisor.route.js";
+import supervisorRoutes from "./route/supervisor.route.js";
 dotenv.config();
 
 const app = express();
