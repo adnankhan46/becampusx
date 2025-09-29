@@ -63,9 +63,9 @@ const OpportunityCard = ({ opportunity, onApplyClick }) => {
           >
             Participate
           </button>
-          <div className='bg-[#6a7cff] p-2 text-white rounded-2xl text-sm'>
+          {/* <div className='bg-[#6a7cff] p-2 text-white rounded-2xl text-sm'>
             Reward <b>₹{opportunity.reward || '400'}</b>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

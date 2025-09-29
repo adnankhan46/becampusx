@@ -36,7 +36,148 @@ const Profile = () => {
   const [password, setPassword] = useState('');
   const [activeTab, setActiveTab] = useState('posts');
   const [updatePassword, { isLoading: isUpdating, error: updateError }] = useUpdatePasswordMutation();
-
+  const dummyAppliedOpportunities = [
+  {
+    _id: "opp1",
+    title: "Full Stack Development Internship",
+    companyName: "Infosys Limited",
+    description: "Work on cutting-edge web applications using React, Node.js, and MongoDB. Collaborate with senior developers to build scalable solutions for enterprise clients. Gain hands-on experience with Agile methodologies and modern development practices.",
+    type: "internship",
+    status: "completed",
+    isPaid: true,
+    amount: 15000,
+    appliedAt: "2024-06-15T10:30:00Z",
+    startDate: "2024-07-01T00:00:00Z",
+    endDate: "2024-09-30T00:00:00Z",
+    duration: "3 months",
+    location: "Bangalore, Karnataka",
+    supervisor: "Dr. Rajesh Kumar",
+    certificate: "https://example.com/certificates/cert-001.pdf",
+    certificateIssued: true,
+    rating: "Excellent",
+    feedback: "Outstanding performance throughout the internship. Demonstrated excellent problem-solving skills and completed all assigned projects ahead of schedule. Highly recommended for future opportunities.",
+    skills: ["React.js", "Node.js", "MongoDB", "REST APIs", "Git"]
+  },
+  {
+    _id: "opp2",
+    title: "Data Science Workshop",
+    companyName: "IIT Madras Research Park",
+    description: "Intensive 2-week workshop covering machine learning fundamentals, data preprocessing, model training, and deployment. Hands-on projects with real-world datasets from various industries.",
+    type: "workshop",
+    status: "selected",
+    isPaid: false,
+    amount: 0,
+    appliedAt: "2024-08-20T14:45:00Z",
+    startDate: "2024-10-05T00:00:00Z",
+    endDate: "2024-10-19T00:00:00Z",
+    duration: "2 weeks",
+    location: "Chennai, Tamil Nadu",
+    supervisor: "Prof. Meena Iyer",
+    certificate: null,
+    certificateIssued: false,
+    participantsCount: 45,
+    skills: ["Python", "Machine Learning", "Data Analysis", "Scikit-learn"]
+  },
+  {
+    _id: "opp3",
+    title: "UI/UX Design Project",
+    companyName: "Flipkart Design Lab",
+    description: "Redesign the mobile shopping experience for tier-2 and tier-3 cities in India. Focus on accessibility, vernacular language support, and low-bandwidth optimization.",
+    type: "project",
+    status: "shortlisted",
+    isPaid: true,
+    amount: 12000,
+    appliedAt: "2024-09-10T09:15:00Z",
+    startDate: "2024-10-01T00:00:00Z",
+    endDate: "2024-12-31T00:00:00Z",
+    duration: "3 months",
+    location: "Bangalore, Karnataka (Hybrid)",
+    supervisor: "Ms. Anjali Verma",
+    certificate: null,
+    certificateIssued: false,
+    skills: ["Figma", "User Research", "Prototyping", "Wireframing"]
+  },
+  {
+    _id: "opp4",
+    title: "Android App Development",
+    companyName: "Zoho Corporation",
+    description: "Develop mobile applications for small and medium businesses. Work with Kotlin, Jetpack Compose, and integrate various Zoho APIs for business automation.",
+    type: "internship",
+    status: "applied",
+    isPaid: true,
+    amount: 18000,
+    appliedAt: "2024-09-25T11:00:00Z",
+    startDate: "2024-11-01T00:00:00Z",
+    endDate: "2025-01-31T00:00:00Z",
+    duration: "3 months",
+    location: "Chennai, Tamil Nadu",
+    supervisor: "Mr. Vikram Rao",
+    certificate: null,
+    certificateIssued: false,
+    openings: 5,
+    skills: ["Android", "Kotlin", "Jetpack Compose", "Firebase"]
+  },
+  {
+    _id: "opp5",
+    title: "Cloud Computing Bootcamp",
+    companyName: "Amazon Web Services (AWS)",
+    description: "Comprehensive training on AWS services including EC2, S3, Lambda, and RDS. Build and deploy scalable cloud applications with hands-on labs and real-world scenarios.",
+    type: "workshop",
+    status: "rejected",
+    isPaid: false,
+    amount: 0,
+    appliedAt: "2024-08-01T16:30:00Z",
+    startDate: "2024-09-01T00:00:00Z",
+    endDate: "2024-09-15T00:00:00Z",
+    duration: "2 weeks",
+    location: "Hyderabad, Telangana",
+    supervisor: "Mr. Suresh Patel",
+    certificate: null,
+    certificateIssued: false,
+    rejectionReason: "Application pool was highly competitive. We received applications from 200+ candidates for 30 seats.",
+    skills: ["AWS", "Cloud Architecture", "DevOps"]
+  },
+  {
+    _id: "opp6",
+    title: "Digital Marketing Internship",
+    companyName: "Swiggy",
+    description: "Execute digital marketing campaigns across social media platforms. Analyze campaign performance, create engaging content, and optimize for conversions.",
+    type: "internship",
+    status: "completed",
+    isPaid: true,
+    amount: 10000,
+    appliedAt: "2024-05-10T13:20:00Z",
+    startDate: "2024-06-01T00:00:00Z",
+    endDate: "2024-08-31T00:00:00Z",
+    duration: "3 months",
+    location: "Mumbai, Maharashtra (Remote)",
+    supervisor: "Ms. Neha Kapoor",
+    certificate: "https://example.com/certificates/cert-002.pdf",
+    certificateIssued: true,
+    rating: "Very Good",
+    feedback: "Showed great creativity in campaign design and demonstrated strong analytical skills. Social media posts received excellent engagement rates.",
+    skills: ["Social Media Marketing", "Google Analytics", "Content Creation", "SEO"]
+  },
+  {
+    _id: "opp7",
+    title: "Blockchain Development Project",
+    companyName: "Polygon Technology",
+    description: "Develop decentralized applications (dApps) on Polygon blockchain. Work with Solidity, Web3.js, and contribute to open-source blockchain projects.",
+    type: "project",
+    status: "applied",
+    isPaid: true,
+    amount: 25000,
+    appliedAt: "2024-09-20T10:00:00Z",
+    startDate: "2024-11-15T00:00:00Z",
+    endDate: "2025-02-15T00:00:00Z",
+    duration: "3 months",
+    location: "Remote",
+    supervisor: "Mr. Arjun Malhotra",
+    certificate: null,
+    certificateIssued: false,
+    skills: ["Blockchain", "Solidity", "Web3.js", "Ethereum"]
+  }
+];
   // State for applied opportunities
   const [appliedOpportunities, setAppliedOpportunities] = useState([]);
   const [selectedOpportunity, setSelectedOpportunity] = useState(null);
@@ -69,22 +210,39 @@ const Profile = () => {
   const userPosts = postsData ? postsData.posts : [];
 
   // Fetch applied opportunities
-  const fetchAppliedOpportunities = async () => {
-    try {
-      const response = await fetch(`/api/applicants/applied-opp/${currentUser._id}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setAppliedOpportunities(data.appliedOpportunities || []);
+const fetchAppliedOpportunities = async () => {
+  try {
+    const response = await fetch(`/api/applicants/applied-opp/${currentUser._id}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
-    } catch (error) {
-      console.error('Failed to fetch applied opportunities:', error);
+    });
+    const data = await response.json();
+    if (response.ok) {
+      // If backend returns data, use it; otherwise use dummy data
+      const opportunities = data.appliedOpportunities && data.appliedOpportunities.length > 0 
+        ? data.appliedOpportunities 
+        : dummyAppliedOpportunities;
+      setAppliedOpportunities(opportunities);
+    } else {
+      // If API fails, use dummy data
+      setAppliedOpportunities(dummyAppliedOpportunities);
     }
-  };
+  } catch (error) {
+    console.error('Failed to fetch applied opportunities:', error);
+    // On error, use dummy data
+    setAppliedOpportunities(dummyAppliedOpportunities);
+  }
+};
 
+const handleDownloadCertificate = (opp) => {
+  // Simulate certificate download
+  if (opp.certificate) {
+    window.open(opp.certificate, '_blank');
+  } else {
+    alert(`Certificate for ${opp.title} is being generated. Please check back later.`);
+  }
+};
   // Fetch student profile
   const fetchProfile = async () => {
     try {
@@ -410,6 +568,28 @@ const Profile = () => {
                         >
                           View Details →
                         </button>
+                        {opp.status === 'completed' && opp.certificateIssued && (
+  <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4 mt-4">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <div className="bg-purple-600 p-2 rounded-lg">
+          <Award className="w-5 h-5 text-white" />
+        </div>
+        <div>
+          <div className="font-semibold text-gray-800">Completion Certificate Available</div>
+          <div className="text-xs text-gray-600">Issued by {opp.companyName}</div>
+        </div>
+      </div>
+      <button
+        onClick={() => handleDownloadCertificate(opp)}
+        className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+      >
+        <Download className="w-4 h-4" />
+        Download
+      </button>
+    </div>
+  </div>
+)}
                       </div>
                     ))}
                   </div>
@@ -668,7 +848,54 @@ const Profile = () => {
                   </div>
                   <span className="text-gray-600">Applied: {new Date(selectedOpportunity.appliedAt).toLocaleDateString()}</span>
                 </div>
-                
+                {selectedOpportunity.certificateIssued && (
+  <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-5">
+    <div className="flex items-start justify-between mb-3">
+      <div className="flex items-center gap-3">
+        <div className="bg-purple-600 p-3 rounded-lg">
+          <Award className="w-6 h-6 text-white" />
+        </div>
+        <div>
+          <div className="font-bold text-gray-800 text-lg">Completion Certificate</div>
+          <div className="text-sm text-gray-600">Issued by {selectedOpportunity.companyName}</div>
+        </div>
+      </div>
+    </div>
+    <button
+      onClick={() => handleDownloadCertificate(selectedOpportunity)}
+      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+    >
+      <Download className="w-5 h-5" />
+      Download Certificate
+    </button>
+  </div>
+)}
+
+{/* Performance Feedback */}
+{selectedOpportunity.status === 'completed' && selectedOpportunity.feedback && (
+  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+    <h3 className="font-semibold mb-2 flex items-center gap-2">
+      <CheckCircle className="w-5 h-5 text-green-600" />
+      Supervisor Feedback
+    </h3>
+    <div className="mb-2">
+      <span className="text-sm font-medium text-gray-700">Rating: </span>
+      <span className="text-green-600 font-semibold">{selectedOpportunity.rating}</span>
+    </div>
+    <p className="text-gray-700 text-sm">{selectedOpportunity.feedback}</p>
+  </div>
+)}
+
+{/* Rejection Reason */}
+{selectedOpportunity.status === 'rejected' && selectedOpportunity.rejectionReason && (
+  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+    <h3 className="font-semibold mb-2 flex items-center gap-2 text-red-700">
+      <XCircle className="w-5 h-5" />
+      Application Status
+    </h3>
+    <p className="text-gray-700 text-sm">{selectedOpportunity.rejectionReason}</p>
+  </div>
+)}
                 <div>
                   <h3 className="font-semibold mb-2">Company</h3>
                   <p className="text-gray-700">{selectedOpportunity.companyName}</p>
