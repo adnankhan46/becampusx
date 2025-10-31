@@ -108,7 +108,7 @@ export function OpportunityCard({ opportunity }: { opportunity: Opportunity }) {
 
         <CardFooter className="flex justify-between items-center border-t bg-gray-50/50">
         {/* If User: Participate, if Provider: Vew Applicants */}
-          <Link to={(opportunity.paymentStatus.firstPayment.status === true || opportunity.paymentStatus.firstPayment.status === null) ? `/Dashboard/allApplicants/${opportunity._id}` : `/Dashboard/payments`}>
+          <Link to={(opportunity.paymentStatus.firstPayment.status === true || opportunity.paymentStatus.firstPayment.status === null) ? `/Dashboard/allApplicants/${opportunity._id}` : `/Dashboard/payments/${opportunity._id}`}>
           <Button
             variant="outline"
             className="text-[#6a7cff] border-[#6a7cff]/30 hover:bg-[#6a7cff]/10 hover:text-[#6a7cff] hover:border-[#6a7cff]"

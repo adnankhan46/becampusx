@@ -43,7 +43,7 @@ const router = createBrowserRouter([
         element:  <AllApplications/>,
       },  
       {
-        path: "payments",
+        path: "payments/:oppId",
         element: <Payments/>,
       },  
       {

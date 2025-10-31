@@ -64,7 +64,7 @@ function Home() {
   return (
     <div className="overflow-x-hidden flex flex-col items-center min-h-screen bg-[#FAF4FE] mb-[120px]">
       <Navbar />
-      <div className="  mt-4 flex flex-col w-full md:w-1/2">
+      <div className="mt-4 flex flex-col w-full md:w-1/2">
         {/* InfiniteScroll component */}
         <InfiniteScroll
           dataLength={posts.length}
